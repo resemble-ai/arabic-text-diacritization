@@ -76,6 +76,8 @@ def calculate_der(original_file, target_file, arabic_letters, diacritic_classes,
 
   equal = 0
   not_equal = 0
+  skippted = 0
+  n_wow = 0
   for (original_line, target_line) in zip(original_content, target_content):
     if style == 'Fadel':
       original_line = clear_line(original_line, arabic_letters, diacritic_classes)
@@ -84,21 +86,27 @@ def calculate_der(original_file, target_file, arabic_letters, diacritic_classes,
     original_classes = get_diacritics_classes(original_line, case_ending, arabic_letters, diacritic_classes, style)
     target_classes = get_diacritics_classes(target_line, case_ending, arabic_letters, diacritic_classes, style)
 
-    assert(len(original_classes) == len(target_classes))
+    # assert(len(original_classes) == len(target_classes))
+    if (len(original_line) != len(target_line)):
+      skippted += 1
+      continue
 
     for (original_class, target_class) in zip(original_classes, target_classes):
       if not no_diacritic and original_class == 0:
         continue
       if original_class == -1 and target_class != -1:
-        print('WOW!')
+        # print('WOW!')
+        n_wow += 1
       if original_class != -1 and target_class == -1:
-        print('WOW!')
+        # print('WOW!')
+        n_wow += 1
       if original_class == -1 and target_class == -1:
         continue
 
       equal += (original_class == target_class)
       not_equal += (original_class != target_class)
 
+  print(f"#wows: {n_wow}")
   return round(not_equal / max(1, (equal + not_equal)) * 100, 2)
 
 def calculate_wer(original_file, target_file, arabic_letters, diacritic_classes, style, case_ending=True, no_diacritic=True):
@@ -112,6 +120,7 @@ def calculate_wer(original_file, target_file, arabic_letters, diacritic_classes,
 
   equal = 0
   not_equal = 0
+  skippted = 0
   for idx, (original_line, target_line) in enumerate(zip(original_content, target_content)):
     if style == 'Fadel':
       original_line = clear_line(original_line, arabic_letters, diacritic_classes)
@@ -120,13 +129,18 @@ def calculate_wer(original_file, target_file, arabic_letters, diacritic_classes,
     original_line = original_line.split()
     target_line = target_line.split()
 
-    assert(len(original_line) == len(target_line))
+    # assert(len(original_line) == len(target_line))
+    if (len(original_line) != len(target_line)):
+      skippted += 1
+      continue
 
     for (original_word, target_word) in zip(original_line, target_line):
       original_classes = get_diacritics_classes(original_word, case_ending, arabic_letters, diacritic_classes, style)
       target_classes = get_diacritics_classes(target_word, case_ending, arabic_letters, diacritic_classes, style)
-
-      assert(len(original_classes) == len(target_classes))
+      
+      # assert(len(original_classes) == len(target_classes))
+      if (len(original_classes) != len(target_classes)):
+        continue
 
       if len(original_classes) == 0:
         continue
@@ -141,6 +155,7 @@ def calculate_wer(original_file, target_file, arabic_letters, diacritic_classes,
       equal += (equal_classes == len(original_classes))
       not_equal += (equal_classes != len(original_classes))
 
+  print(f"skipped: {skippted}")
   return round(not_equal / max(1, (equal + not_equal)) * 100, 2)
 
 def calculate_ser(original_file, target_file, arabic_letters, diacritic_classes, style, case_ending=True, no_diacritic=True):
@@ -154,6 +169,7 @@ def calculate_ser(original_file, target_file, arabic_letters, diacritic_classes,
 
   equal = 0
   not_equal = 0
+  skipped = 0
   for idx, (original_line, target_line) in enumerate(zip(original_content, target_content)):
     if style == 'Fadel':
       original_line = clear_line(original_line, arabic_letters, diacritic_classes)
@@ -162,14 +178,19 @@ def calculate_ser(original_file, target_file, arabic_letters, diacritic_classes,
     original_line = original_line.split()
     target_line = target_line.split()
 
-    assert(len(original_line) == len(target_line))
+    # assert(len(original_line) == len(target_line))
+    if (len(original_line) != len(target_line)):
+      continue
 
     equal_words = True
     for (original_word, target_word) in zip(original_line, target_line):
       original_classes = get_diacritics_classes(original_word, case_ending, arabic_letters, diacritic_classes, style)
       target_classes = get_diacritics_classes(target_word, case_ending, arabic_letters, diacritic_classes, style)
 
-      assert(len(original_classes) == len(target_classes))
+      # assert(len(original_classes) == len(target_classes))
+      if (len(original_classes) != len(target_classes)):
+        skipped += 1
+        continue
 
       if len(original_classes) == 0:
         continue
@@ -187,6 +208,7 @@ def calculate_ser(original_file, target_file, arabic_letters, diacritic_classes,
     equal += equal_words
     not_equal += not equal_words
 
+  print(f"#skips: {skipped}")
   return round(not_equal / max(1, (equal + not_equal)) * 100, 2)
 
 if __name__ == '__main__':
